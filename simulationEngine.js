@@ -2230,6 +2230,14 @@
 
             const freeAgent = state.freeAgents[faIndex];
 
+            // Initialize salary properties if missing (backward compatibility)
+            if (!userTeamObj.salary_cap) {
+              userTeamObj.salary_cap = 140000000;
+            }
+            if (userTeamObj.used_salary === undefined) {
+              userTeamObj.used_salary = 0;
+            }
+
             // Check salary cap
             const availableSalary =
               userTeamObj.salary_cap - userTeamObj.used_salary;

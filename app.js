@@ -330,6 +330,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedState = localStorage.getItem("nba_sim_state");
     if (savedState) {
       gameState = JSON.parse(savedState);
+      
+      // Migration: initialize salary_cap and used_salary for all teams if missing
+      if (gameState.teams) {
+        Object.values(gameState.teams).forEach(team => {
+          if (!team.salary_cap) {
+            team.salary_cap = 140000000;
+          }
+          if (team.used_salary === undefined) {
+            team.used_salary = team.roster.reduce(
+              (sum, p) => sum + (p.salary || 0),
+              0,
+            );
+          }
+        });
+      }
+      
       showAppScreen();
     } else {
       showSelectionScreen();
@@ -1066,14 +1082,19 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- RENDER : FREE AGENTS ---
   function renderFreeAgents() {
     const userTeam = gameState.teams[gameState.userTeam];
+    if (!userTeam) return;
+    
     const freeAgents = gameState.freeAgents || [];
 
-    // Update salary info
-    const availableSalary = userTeam.salary_cap - userTeam.used_salary;
+    // Update salary info with fallback defaults
+    const salary_cap = userTeam.salary_cap || 140000000;
+    const used_salary = userTeam.used_salary || 0;
+    const availableSalary = salary_cap - used_salary;
+    
     document.getElementById("available-salary").textContent =
       (availableSalary / 1000000).toFixed(1) + "M$";
     document.getElementById("used-salary").textContent =
-      (userTeam.used_salary / 1000000).toFixed(1) + "M$";
+      (used_salary / 1000000).toFixed(1) + "M$";
     document.getElementById("free-agents-count").textContent =
       freeAgents.length;
 
