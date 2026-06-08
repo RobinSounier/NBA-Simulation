@@ -2833,6 +2833,22 @@
         alerts: alerts,
       };
     },
+    calculateSalaryForDisplay: function (rating, starter) {
+      // Salary cap for 2024-25 season is about $140M
+      // Min salary is around $2M, max around $50M
+      let baseSalary = 2000000; // minimum
+
+      if (starter) {
+        // Starters get more based on their rating (60-96)
+        const ratingBonus = (rating - 60) * 500000;
+        baseSalary = 8000000 + ratingBonus;
+      } else {
+        // Bench players
+        baseSalary = 3000000 + Math.max(0, rating - 60) * 150000;
+      }
+
+      return Math.round(baseSalary);
+    },
   };
 
   // Helper pour trouver le gagnant d'une série
