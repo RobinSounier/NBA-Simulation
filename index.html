@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NBA Season Simulator - Dashboard</title>
+  <!-- Google Fonts - Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Screen 1: Team Selection (Accueil) -->
+  <div id="selection-screen" class="screen active">
+    <div class="selection-container">
+      <header class="selection-header">
+        <div class="logo-badge"><i class="fa-solid fa-basketball"></i></div>
+        <h1>NBA Season Simulator</h1>
+        <p>Prenez les rênes d'une franchise légendaire et menez-la vers les sommets de la NBA</p>
+      </header>
+
+      <div class="selection-box">
+        <h2>Choisissez votre équipe</h2>
+        <div class="teams-grid" id="teams-selection-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Main Application Dashboard -->
+  <div id="app-screen" class="screen">
+    <!-- Top Bar -->
+    <header class="app-header">
+      <div class="header-left">
+        <i class="fa-solid fa-basketball logo-icon animate-spin"></i>
+        <span class="app-title">NBA Season Simulator</span>
+        <div class="stage-badge" id="current-stage-badge">Regular Season</div>
+      </div>
+      <div class="header-center" id="user-team-banner">
+        <!-- Dynamically populated team details -->
+      </div>
+      <div class="header-right">
+        <button id="reset-btn" class="btn btn-danger-outline"><i class="fa-solid fa-rotate-left"></i> Recommencer</button>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <!-- Sidebar Navigation -->
+      <aside class="app-sidebar">
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-tab="dashboard-tab">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+          </button>
+          <button class="nav-item" data-tab="calendar-tab">
+            <i class="fa-solid fa-calendar-days"></i> Calendrier
+          </button>
+          <button class="nav-item" data-tab="standings-tab">
+            <i class="fa-solid fa-list-ol"></i> Classements
+          </button>
+          <button class="nav-item" data-tab="roster-tab">
+            <i class="fa-solid fa-users"></i> Effectif & Rotation
+          </button>
+          <button class="nav-item" data-tab="messages-tab" id="nav-messages-btn">
+            <i class="fa-solid fa-envelope"></i> Messages <span class="badge badge-pulse" id="messages-badge" style="display: none;">0</span>
+          </button>
+          <button class="nav-item" data-tab="playoffs-tab" id="nav-playoffs-btn" style="display: none;">
+            <i class="fa-solid fa-trophy"></i> Playoffs
+          </button>
+        </nav>
+
+        <!-- Current Status Mini Panel -->
+        <div class="mini-status-panel">
+          <div class="status-row">
+            <span>Semaine actuelle</span>
+            <strong id="sidebar-week-num">1 / 24</strong>
+          </div>
+          <div class="status-row">
+            <span>Bilan</span>
+            <strong id="sidebar-record">0 - 0</strong>
+          </div>
+          <div class="status-row">
+            <span>Série</span>
+            <strong id="sidebar-streak" class="streak-neutral">-</strong>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="app-content">
+        
+        <!-- Tab 1: Dashboard -->
+        <section id="dashboard-tab" class="tab-content active">
+          <div class="dashboard-grid">
+            
+            <!-- Column Left: Next Action & Commentary -->
+            <div class="dash-card main-simulation-card">
+              <h3>Simulation de match</h3>
+              <div class="sim-actions-container">
+                <div class="next-matchup-preview" id="next-matchup-preview">
+                  <!-- Dynamically populated -->
+                </div>
+                <div class="sim-buttons">
+                  <button id="sim-game-btn" class="btn btn-primary btn-large">
+                    <i class="fa-solid fa-play"></i> Simuler le match
+                  </button>
+                  <button id="sim-week-btn" class="btn btn-secondary btn-large">
+                    <i class="fa-solid fa-forward-fast"></i> Simuler la semaine
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Narrative Log -->
+            <div class="dash-card live-feed-card">
+              <h3>Commentateur Live NBA</h3>
+              <div class="narrative-display" id="narrative-box">
+                <p class="empty-narrative">Bienvenue coach ! Lancez le premier match pour débuter l'aventure.</p>
+              </div>
+              <div class="alerts-container" id="alerts-box">
+                <!-- Injury/Milestone alerts -->
+              </div>
+            </div>
+
+            <!-- Quick Stats Overview -->
+            <div class="dash-card team-preview-card">
+              <h3>Bilan de l'effectif</h3>
+              <div class="team-quick-stats">
+                <div class="stat-box">
+                  <span class="stat-label">Fatigue Moyenne</span>
+                  <div class="stat-value-container">
+                    <span class="stat-val" id="quick-fatigue">0%</span>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" id="quick-fatigue-bar" style="width: 0%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Moral Collectif</span>
+                  <div class="stat-value-container">
+                    <span class="stat-val" id="quick-moral">75%</span>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" id="quick-moral-bar" style="width: 75%"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="stat-box">
+                  <span class="stat-label">Joueurs Blessés</span>
+                  <span class="stat-val text-warning" id="quick-injuries">Aucun</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Tab 2: Calendar -->
+        <section id="calendar-tab" class="tab-content">
+          <div class="section-header">
+            <h2>Calendrier de la Saison régulière</h2>
+            <div class="filters">
+              <button class="btn btn-filter active" id="cal-filter-all">Tous les matchs</button>
+              <button class="btn btn-filter" id="cal-filter-user">Matchs de mon équipe</button>
+            </div>
+          </div>
+          <div class="calendar-list" id="calendar-games-list">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- Tab 3: Standings -->
+        <section id="standings-tab" class="tab-content">
+          <div class="section-header">
+            <h2>Classements de la Ligue</h2>
+            <div class="conference-tabs">
+              <button class="btn btn-tab active" data-conf="East">Conférence Est</button>
+              <button class="btn btn-tab" data-conf="West">Conférence Ouest</button>
+            </div>
+          </div>
+          
+          <div class="table-container">
+            <table class="standings-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px">Pos</th>
+                  <th>Équipe</th>
+                  <th style="text-align: center">V</th>
+                  <th style="text-align: center">D</th>
+                  <th style="text-align: center">%</th>
+                  <th style="text-align: center">GB</th>
+                  <th style="text-align: center">Série</th>
+                  <th style="text-align: center">10 Derniers</th>
+                  <th style="text-align: center">Diff</th>
+                </tr>
+              </thead>
+              <tbody id="standings-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 4: Roster & Rotations -->
+        <section id="roster-tab" class="tab-content">
+          <div class="section-header">
+            <h2>Gestion de l'effectif</h2>
+            <p class="subtitle">Sélectionnez exactement 5 titulaires actifs pour définir votre 5 majeur</p>
+          </div>
+          
+          <div class="table-container">
+            <table class="roster-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px">Statut</th>
+                  <th>Joueur</th>
+                  <th style="text-align: center">Poste</th>
+                  <th style="text-align: center">Âge</th>
+                  <th style="text-align: center">Note (OVR)</th>
+                  <th style="text-align: center">Fatigue</th>
+                  <th style="text-align: center">Moral</th>
+                  <th style="text-align: center">MJ</th>
+                  <th style="text-align: center">PTS/m</th>
+                  <th style="text-align: center">REB/m</th>
+                  <th style="text-align: center">AST/m</th>
+                  <th style="text-align: center">INT/m</th>
+                  <th style="text-align: center">CTR/m</th>
+                  <th style="text-align: center; width: 100px;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="roster-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="roster-actions">
+            <button id="save-rotation-btn" class="btn btn-primary" disabled>
+              <i class="fa-solid fa-floppy-disk"></i> Enregistrer la rotation
+            </button>
+            <span id="rotation-message" class="rotation-info-msg">Modifiez les cases pour changer les titulaires</span>
+          </div>
+        </section>
+
+        <!-- Tab 5: Playoffs Bracket -->
+        <section id="playoffs-tab" class="tab-content">
+          <div class="section-header">
+            <h2>Playoffs NBA <span id="playoffs-year">2026</span></h2>
+            <div class="playoff-controls">
+              <button id="sim-playoffs-step-btn" class="btn btn-primary">
+                <i class="fa-solid fa-play"></i> Simuler match de playoffs
+              </button>
+            </div>
+          </div>
+          
+          <div class="playoffs-bracket-container" id="playoffs-bracket">
+            <!-- Playoffs tree visualizer -->
+          </div>
+        </section>
+
+        <!-- Tab 6: Messages & Recruitment -->
+        <section id="messages-tab" class="tab-content">
+          <div class="section-header">
+            <h2>Messagerie du Coach</h2>
+            <p class="subtitle">Gérez les transferts, répondez aux requêtes de l'effectif et analysez les rapports de scouts</p>
+          </div>
+          
+          <div class="mailbox-container">
+            <!-- Left Panel: Email List -->
+            <div class="email-list-panel">
+              <div class="email-list-header">
+                <h3>Boîte de réception</h3>
+                <span id="unread-count-text" class="unread-count-label">0 non lu(s)</span>
+              </div>
+              <div class="email-list" id="email-list-items">
+                <!-- Dynamically populated emails -->
+                <div class="empty-mailbox">
+                  <i class="fa-regular fa-folder-open"></i>
+                  <p>Aucun message reçu.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Panel: Email Detail -->
+            <div class="email-detail-panel" id="email-detail-view">
+              <div class="empty-email-detail">
+                <i class="fa-solid fa-envelope-open-text"></i>
+                <p>Sélectionnez un message dans la liste pour l'afficher.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Loading / Overlay for Simulation -->
+  <div id="simulation-overlay" class="overlay">
+    <div class="overlay-content">
+      <div class="spinner"><i class="fa-solid fa-basketball animate-bounce"></i></div>
+      <p id="overlay-text">Simulation du match en cours...</p>
+    </div>
+  </div>
+
+  <!-- Custom Confirm Modal -->
+  <div id="confirm-modal" class="overlay">
+    <div class="overlay-content" style="max-width: 400px; padding: 30px;">
+      <h3 style="font-family: var(--font-title); margin-bottom: 15px; border-bottom: none;"><i class="fa-solid fa-triangle-exclamation text-warning"></i> Recommencer</h3>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 25px; text-align: center;">Êtes-vous sûr de vouloir recommencer la saison ? Toutes vos progressions seront perdues.</p>
+      <div style="display: flex; gap: 15px; justify-content: center; width: 100%;">
+        <button id="confirm-cancel-btn" class="btn btn-filter" style="flex: 1;">Annuler</button>
+        <button id="confirm-ok-btn" class="btn btn-primary" style="flex: 1; background-color: var(--danger); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);">Oui, recommencer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="simulationEngine.js"></script>
+  <script src="js/playoffSimView.js"></script>
+  <script src="js/liveMatchSim.js"></script>
+  <script src="js/liveMatchUI.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
