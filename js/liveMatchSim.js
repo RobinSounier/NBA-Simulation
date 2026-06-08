@@ -189,12 +189,21 @@
         const qNum = matchState.currentQuarter;
         let useBench = false;
 
+        // Plus de substitutions au cours du match
         if (qNum <= 4) {
-          if (qNum === 1 || qNum === 3) {
-            if (qTime <= 240) useBench = true;
-          } else {
-            if (qTime > 480) useBench = true;
+          if (qNum === 1) {
+            if (qTime <= 300) useBench = true;   // 0-5 min: titulaires
+            else if (qTime <= 600) useBench = false; // 5-10 min: remplaçants
+          } else if (qNum === 2 || qNum === 3) {
+            if (qTime <= 300) useBench = true;   // début du quart: remplaçants
+            else if (qTime <= 600) useBench = false; // milieu: titulaires reviennent
+          } else if (qNum === 4) {
+            if (qTime <= 300) useBench = false;  // Q4 début: titulaires
+            else if (qTime <= 600) useBench = true;  // Q4 fin: remplaçants
           }
+        } else {
+          // Overtime: rotation plus fréquente
+          useBench = Math.random() > 0.5;
         }
 
         const healthyStarters = roster.filter(p => p.starter && !p.injury);

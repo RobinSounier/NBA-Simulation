@@ -1763,6 +1763,18 @@ tbody tr.user-row:hover {
   100% { transform: scale(1.03); }
 }
 
+@keyframes pulse-badge {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+  }
+}
+
 .release-btn {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.25);

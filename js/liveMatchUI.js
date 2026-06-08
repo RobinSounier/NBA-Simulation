@@ -380,15 +380,19 @@
       const isOnCourt = startersList.some(starter => starter.id === p.id);
       let statusHTML = "";
       if (p.injury) {
-        statusHTML = `<span class="badge badge-injured">Blessé</span>`;
+        statusHTML = `<span class="badge badge-injured">🏥 Blessé</span>`;
       } else if (isOnCourt) {
-        statusHTML = `<span class="badge badge-active">Sur le terrain</span>`;
+        statusHTML = `<span class="badge badge-active" style="background: #4CAF50; animation: pulse-badge 1s infinite;">🔥 Sur le terrain</span>`;
       } else {
         statusHTML = `<span class="badge badge-bench">Banc</span>`;
       }
 
       const row = document.createElement("tr");
-      if (isOnCourt) row.className = "on-court-row";
+      if (isOnCourt) {
+        row.className = "on-court-row";
+        row.style.backgroundColor = "rgba(76, 175, 80, 0.1)";
+        row.style.fontWeight = "bold";
+      }
       row.innerHTML = `
         <td style="font-weight: 500;">${p.name}</td>
         <td>${p.position}</td>
