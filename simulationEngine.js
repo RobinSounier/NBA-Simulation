@@ -1214,6 +1214,8 @@
 
       remainingPlayers.forEach((p) => {
         const salary = calculateSalary(p.overallAttribute, false);
+        const age = Math.floor(Math.random() * 12) + 19;
+        const potential = calculatePotential(age, p.overallAttribute);
         freeAgents.push({
           id:
             p.name.replace(/\s+/g, "_") +
@@ -1222,8 +1224,11 @@
           name: p.name,
           originalTeam: p.team,
           position: inferPosition(p),
-          age: Math.floor(Math.random() * 12) + 19,
+          age: age,
           rating: p.overallAttribute,
+          potential: potential,
+          experience: 0,
+          peakAge: 28 + Math.floor(Math.random() * 3),
           salary: salary,
           starter: false,
           fatigue: 0,
@@ -1404,8 +1409,92 @@
     return Math.round(baseSalary);
   }
 
+  function calculatePotential(age, rating) {
+    // Calculate potential ceiling based on age and current rating
+    // Younger players have higher potential growth
+    let potential = rating;
+
+    if (age <= 22) {
+      // Young prospects can grow +15-25 points
+      potential = Math.min(96, rating + Math.floor(Math.random() * 11) + 15);
+    } else if (age <= 25) {
+      // Early prime, growth +8-15 points
+      potential = Math.min(96, rating + Math.floor(Math.random() * 8) + 8);
+    } else if (age <= 28) {
+      // Prime years, growth +3-8 points
+      potential = Math.min(96, rating + Math.floor(Math.random() * 6) + 3);
+    } else if (age <= 30) {
+      // Late prime, minimal growth +1-3 points
+      potential = Math.min(96, rating + Math.floor(Math.random() * 3) + 1);
+    } else {
+      // Veterans typically at peak
+      potential = rating;
+    }
+
+    return potential;
+  }
+
+  function updatePlayerProgression(player, gamesPlayed, minutes, isSeason) {
+    // Only progress once per season
+    if (!isSeason || !player.experience) {
+      player.experience = player.experience || 0;
+      return player;
+    }
+
+    const age = player.age || 25;
+    const currentRating = player.rating || 75;
+    const potential =
+      player.potential || calculatePotential(age, currentRating);
+
+    let progression = 0;
+
+    // Base progression by age
+    if (age <= 24) {
+      // Young players grow faster
+      progression = 3 + Math.floor(Math.random() * 3); // +3 to +5
+    } else if (age <= 28) {
+      // Prime years, slower growth
+      progression = 1 + Math.floor(Math.random() * 2); // +1 to +2
+    } else if (age <= 32) {
+      // Still improving but slowing
+      progression = Math.floor(Math.random() * 2); // 0 to +1
+    } else if (age <= 35) {
+      // Decline phase
+      progression = -1 - Math.floor(Math.random() * 2); // -1 to -2
+    } else {
+      // Late career decline
+      progression = -2 - Math.floor(Math.random() * 2); // -2 to -3
+    }
+
+    // Bonus for experience (regular playing time)
+    if (gamesPlayed > 60) {
+      progression += 1; // Bonus for playoff-level minutes
+    } else if (gamesPlayed > 30) {
+      progression += 0; // Standard progression
+    } else if (gamesPlayed > 10) {
+      progression -= 1; // Less development for limited time
+    } else {
+      progression -= 2; // Bench warmers regress slightly
+    }
+
+    // Can't exceed potential
+    const newRating = Math.min(
+      potential,
+      Math.max(45, currentRating + progression), // Floor at 45, ceiling at potential
+    );
+
+    // Update player stats
+    player.rating = newRating;
+    player.experience = (player.experience || 0) + gamesPlayed;
+    player.potential = potential;
+
+    return player;
+  }
+
   function createPlayerObject(rawPlayer, position, starter, id) {
     const salary = calculateSalary(rawPlayer.overallAttribute, starter);
+    const age = Math.floor(Math.random() * 12) + 19; // 19-30
+    const potential = calculatePotential(age, rawPlayer.overallAttribute);
     return {
       id:
         id ||
@@ -1414,8 +1503,11 @@
           Math.floor(Math.random() * 1000),
       name: rawPlayer.name,
       position: position,
-      age: Math.floor(Math.random() * 12) + 19,
+      age: age,
       rating: rawPlayer.overallAttribute,
+      potential: potential,
+      experience: 0,
+      peakAge: 28 + Math.floor(Math.random() * 3), // Peak typically 28-30
       starter: starter,
       salary: salary,
       fatigue: 0,
@@ -1634,6 +1726,29 @@
             const userTeamName = params.userTeam || "Los Angeles Lakers";
             const usedNames = new Set();
             const teams = {};
+
+            // Apply player progression if continuing from previous season
+            if (state.season && state.teams) {
+              Object.values(state.teams).forEach((team) => {
+                if (team.roster) {
+                  team.roster.forEach((player) => {
+                    const gamesPlayed = player.stats?.gp || 0;
+                    updatePlayerProgression(player, gamesPlayed, 0, true);
+                    // Update age at end of season
+                    player.age = (player.age || 25) + 1;
+                  });
+                }
+              });
+
+              // Also progress free agents
+              if (state.freeAgents) {
+                state.freeAgents.forEach((player) => {
+                  const gamesPlayed = player.stats?.gp || 0;
+                  updatePlayerProgression(player, gamesPlayed, 0, true);
+                  player.age = (player.age || 25) + 1;
+                });
+              }
+            }
 
             TEAM_DEFS.forEach((def) => {
               teams[def.city + " " + def.name] = {
@@ -2856,6 +2971,35 @@
       }
 
       return Math.round(baseSalary);
+    },
+    getPlayerProgressionInfo: function (player) {
+      // Return progression info for UI display
+      const current = player.rating || 75;
+      const potential = player.potential || current + 5;
+      const experience = player.experience || 0;
+      const age = player.age || 25;
+      const peakAge = player.peakAge || 28;
+      const gp = player.stats?.gp || 0;
+
+      let progressionStatus = "normal";
+      if (age < peakAge) {
+        progressionStatus = "rising";
+      } else if (age === peakAge) {
+        progressionStatus = "peak";
+      } else if (age > peakAge + 3) {
+        progressionStatus = "declining";
+      }
+
+      return {
+        current,
+        potential,
+        experience,
+        age,
+        peakAge,
+        gp,
+        progressionStatus,
+        roomForGrowth: potential - current,
+      };
     },
   };
 

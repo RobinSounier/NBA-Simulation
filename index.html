@@ -76,6 +76,9 @@
             <button class="nav-item" data-tab="roster-tab">
               <i class="fa-solid fa-users"></i> Effectif & Rotation
             </button>
+            <button class="nav-item" data-tab="development-tab">
+              <i class="fa-solid fa-chart-line"></i> Développement
+            </button>
             <button class="nav-item" data-tab="free-agents-tab">
               <i class="fa-solid fa-person-circle-plus"></i> Agents Libres
             </button>
@@ -301,6 +304,50 @@
               <span id="rotation-message" class="rotation-info-msg"
                 >Modifiez les cases pour changer les titulaires</span
               >
+            </div>
+          </section>
+
+          <!-- Tab: Player Development -->
+          <section id="development-tab" class="tab-content">
+            <div class="tab-inner">
+              <h2>Développement des Joueurs</h2>
+              <p class="section-description">
+                Suivez la progression de vos joueurs, leur potentiel et leur
+                phase de carrière.
+              </p>
+
+              <div class="development-stats">
+                <div class="dev-card">
+                  <div class="dev-label">Joueurs en Progression</div>
+                  <div class="dev-value" id="rising-players">0</div>
+                </div>
+                <div class="dev-card">
+                  <div class="dev-label">Au Sommet</div>
+                  <div class="dev-value" id="peak-players">0</div>
+                </div>
+                <div class="dev-card">
+                  <div class="dev-label">En Déclin</div>
+                  <div class="dev-value" id="declining-players">0</div>
+                </div>
+              </div>
+
+              <table class="development-table">
+                <thead>
+                  <tr>
+                    <th>Joueur</th>
+                    <th style="text-align: center">Pos</th>
+                    <th style="text-align: center">Âge</th>
+                    <th style="text-align: center">Note</th>
+                    <th style="text-align: center">Potentiel</th>
+                    <th style="text-align: center">Marge</th>
+                    <th style="text-align: center">Phase</th>
+                    <th style="text-align: center">Matches</th>
+                  </tr>
+                </thead>
+                <tbody id="development-table-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
             </div>
           </section>
 

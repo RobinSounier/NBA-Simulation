@@ -2130,4 +2130,123 @@ tbody tr.user-row:hover {
   white-space: nowrap;
 }
 
+/* Development Styles */
+.development-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.dev-card {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.dev-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.dev-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.development-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: transparent;
+  font-family: var(--font-body);
+}
+
+.development-table thead {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.development-table th {
+  padding: 15px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.development-table tbody tr {
+  border-bottom: 1px solid var(--panel-border);
+  transition: all 0.2s ease;
+}
+
+.development-table tbody tr:hover {
+  background-color: rgba(255, 107, 0, 0.05);
+}
+
+.development-table td {
+  padding: 15px;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.progression-phase {
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.progression-phase.rising {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.progression-phase.peak {
+  background-color: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+}
+
+.progression-phase.normal {
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+
+.progression-phase.declining {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.potential-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+}
+
+.potential-bar-fill {
+  height: 6px;
+  background-color: rgba(255, 107, 0, 0.3);
+  border-radius: 3px;
+  overflow: hidden;
+  flex: 0 0 80px;
+}
+
+.potential-bar-progress {
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
 

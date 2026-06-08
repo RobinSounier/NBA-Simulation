@@ -522,6 +522,9 @@ document.addEventListener("DOMContentLoaded", () => {
       case "roster-tab":
         renderRoster();
         break;
+      case "development-tab":
+        renderDevelopment();
+        break;
       case "free-agents-tab":
         renderFreeAgents();
         break;
@@ -1317,6 +1320,78 @@ document.addEventListener("DOMContentLoaded", () => {
             Signer
           </button>
         </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // --- RENDER : PLAYER DEVELOPMENT ---
+  function renderDevelopment() {
+    const userTeam = gameState.teams[gameState.userTeam];
+    if (!userTeam || !userTeam.roster) return;
+
+    const roster = userTeam.roster;
+    let rising = 0;
+    let peak = 0;
+    let declining = 0;
+
+    // Render development stats
+    roster.forEach((player) => {
+      const info = window.SimulationEngine.getPlayerProgressionInfo(player);
+      if (info.progressionStatus === "rising") rising++;
+      else if (info.progressionStatus === "peak") peak++;
+      else if (info.progressionStatus === "declining") declining++;
+    });
+
+    document.getElementById("rising-players").textContent = rising;
+    document.getElementById("peak-players").textContent = peak;
+    document.getElementById("declining-players").textContent = declining;
+
+    // Render table
+    const tableBody = document.getElementById("development-table-body");
+    tableBody.innerHTML = "";
+
+    const sortedRoster = [...roster].sort((a, b) => {
+      const aInfo = window.SimulationEngine.getPlayerProgressionInfo(a);
+      const bInfo = window.SimulationEngine.getPlayerProgressionInfo(b);
+      return bInfo.roomForGrowth - aInfo.roomForGrowth; // Sort by growth potential
+    });
+
+    sortedRoster.forEach((player) => {
+      const info = window.SimulationEngine.getPlayerProgressionInfo(player);
+      const progressPct = Math.min(
+        100,
+        ((info.current - 45) / (info.potential - 45)) * 100,
+      ); // 45 is floor
+
+      const phaseNames = {
+        rising: "🔼 En Progression",
+        peak: "🔝 Au Sommet",
+        normal: "→ Normal",
+        declining: "🔽 En Déclin",
+      };
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${player.name}</strong></td>
+        <td style="text-align: center">${player.position}</td>
+        <td style="text-align: center">${info.age}</td>
+        <td style="text-align: center; font-weight: 600">${info.current}</td>
+        <td style="text-align: center; font-weight: 600">${info.potential}</td>
+        <td style="text-align: center">
+          <div class="potential-bar">
+            <span>+${info.roomForGrowth}</span>
+            <div class="potential-bar-fill">
+              <div class="potential-bar-progress" style="width: ${progressPct}%"></div>
+            </div>
+          </div>
+        </td>
+        <td style="text-align: center">
+          <span class="progression-phase ${info.progressionStatus}">
+            ${phaseNames[info.progressionStatus] || "Normal"}
+          </span>
+        </td>
+        <td style="text-align: center">${info.gp}</td>
       `;
       tableBody.appendChild(row);
     });
