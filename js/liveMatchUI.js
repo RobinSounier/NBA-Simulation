@@ -1,4 +1,4 @@
-(function() {
+(function () {
   let simInterval = null;
   let currentSpeed = 1000; // default 1s
   let isPaused = false;
@@ -6,7 +6,7 @@
   let completionCallback = null;
 
   window.LiveMatchUI = {
-    openLiveMatchOverlay: function(homeTeam, awayTeam, stage, onComplete) {
+    openLiveMatchOverlay: function (homeTeam, awayTeam, stage, onComplete) {
       completionCallback = onComplete;
       isPaused = false;
       currentSpeed = 1000;
@@ -157,13 +157,15 @@
         { id: "btn-speed-1x", val: 1200 },
         { id: "btn-speed-2x", val: 600 },
         { id: "btn-speed-4x", val: 250 },
-        { id: "btn-speed-8x", val: 60 }
+        { id: "btn-speed-8x", val: 60 },
       ];
 
-      speeds.forEach(sp => {
+      speeds.forEach((sp) => {
         const btn = document.getElementById(sp.id);
         btn.addEventListener("click", () => {
-          speeds.forEach(s => document.getElementById(s.id).classList.remove("active"));
+          speeds.forEach((s) =>
+            document.getElementById(s.id).classList.remove("active"),
+          );
           btn.classList.add("active");
           currentSpeed = sp.val;
           if (!isPaused && !matchState.finished) {
@@ -194,10 +196,10 @@
 
       // Render initial state
       updateUI();
-      
+
       // Start Loop
       startSimLoop();
-    }
+    },
   };
 
   function startSimLoop() {
@@ -239,11 +241,11 @@
     // Scoreboard values
     const scoreHome = document.getElementById("score-home");
     const scoreAway = document.getElementById("score-away");
-    
+
     // Add pulsing visual feedback if score changes
     const prevHome = parseInt(scoreHome.textContent) || 0;
     const prevAway = parseInt(scoreAway.textContent) || 0;
-    
+
     scoreHome.textContent = matchState.homeScore;
     scoreAway.textContent = matchState.awayScore;
 
@@ -257,12 +259,16 @@
     }
 
     // Timer & Quarter
-    const qStr = matchState.currentQuarter > 4 ? `OT${matchState.currentQuarter - 4}` : `Q${matchState.currentQuarter}`;
+    const qStr =
+      matchState.currentQuarter > 4
+        ? `OT${matchState.currentQuarter - 4}`
+        : `Q${matchState.currentQuarter}`;
     document.getElementById("live-quarter").textContent = qStr;
-    
+
     const minutes = Math.floor(matchState.quarterTime / 60);
     const seconds = matchState.quarterTime % 60;
-    document.getElementById("live-timer").textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    document.getElementById("live-timer").textContent =
+      `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
 
     // Quarter scores bar
     renderQuarterScoresBar();
@@ -271,7 +277,11 @@
     updateCourtView();
 
     // Live Stats Table
-    const activeStatsTeam = document.getElementById("btn-stats-home").classList.contains("active") ? "home" : "away";
+    const activeStatsTeam = document
+      .getElementById("btn-stats-home")
+      .classList.contains("active")
+      ? "home"
+      : "away";
     renderStatsTable(activeStatsTeam);
 
     // Commentary feed
@@ -290,11 +300,11 @@
         <span class="q-col">Q3</span>
         <span class="q-col">Q4</span>
     `;
-    
+
     // Add Overtime headers if they exist
     const otCount = Math.max(0, matchState.homeQuarters.length - 4);
     for (let i = 0; i < otCount; i++) {
-      html += `<span class="q-col">OT${i+1}</span>`;
+      html += `<span class="q-col">OT${i + 1}</span>`;
     }
     html += `<span class="q-col total">Total</span></div>`;
 
@@ -342,7 +352,10 @@
       return;
     }
 
-    const attacker = matchState.possession === "home" ? matchState.homeTeam : matchState.awayTeam;
+    const attacker =
+      matchState.possession === "home"
+        ? matchState.homeTeam
+        : matchState.awayTeam;
     actionText.textContent = `ATTATQUE : ${attacker.city.toUpperCase()} ${attacker.name.toUpperCase()}`;
 
     if (matchState.possession === "home") {
@@ -362,22 +375,26 @@
     const tbody = document.getElementById("live-stats-body");
     if (!tbody) return;
 
-    const statsObj = teamType === "home" ? matchState.homeStats : matchState.awayStats;
-    const startersList = teamType === "home" ? matchState.activeHomeStarters : matchState.activeAwayStarters;
+    const statsObj =
+      teamType === "home" ? matchState.homeStats : matchState.awayStats;
+    const startersList =
+      teamType === "home"
+        ? matchState.activeHomeStarters
+        : matchState.activeAwayStarters;
 
     tbody.innerHTML = "";
 
     // Sort players so starters are shown first
     const players = Object.values(statsObj).sort((a, b) => {
-      const aStarter = startersList.some(p => p.id === a.id);
-      const bStarter = startersList.some(p => p.id === b.id);
+      const aStarter = startersList.some((p) => p.id === a.id);
+      const bStarter = startersList.some((p) => p.id === b.id);
       if (aStarter && !bStarter) return -1;
       if (!aStarter && bStarter) return 1;
       return b.pts - a.pts; // then sort by points
     });
 
-    players.forEach(p => {
-      const isOnCourt = startersList.some(starter => starter.id === p.id);
+    players.forEach((p) => {
+      const isOnCourt = startersList.some((starter) => starter.id === p.id);
       let statusHTML = "";
       if (p.injury) {
         statusHTML = `<span class="badge badge-injured">🏥 Blessé</span>`;
@@ -417,10 +434,10 @@
     // Show latest commentaries (limit to 30 for performance)
     const logs = matchState.commentaries.slice(-30);
 
-    logs.forEach(c => {
+    logs.forEach((c) => {
       const item = document.createElement("div");
       item.className = `ticker-item type-${c.type}`;
-      
+
       let badgeHTML = "";
       if (c.type === "score-success") {
         badgeHTML = `<span class="ticker-badge success">SCORE</span>`;
@@ -450,7 +467,7 @@
     const skipBtn = document.getElementById("btn-live-skip");
 
     if (playPauseBtn) playPauseBtn.style.display = "none";
-    
+
     if (skipBtn) {
       skipBtn.className = "btn btn-primary btn-finish-match";
       skipBtn.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Enregistrer le résultat`;
@@ -470,5 +487,4 @@
       completionCallback(matchState);
     }
   }
-
 })();

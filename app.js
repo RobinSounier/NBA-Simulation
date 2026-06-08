@@ -290,6 +290,9 @@ document.addEventListener("DOMContentLoaded", () => {
       case "roster-tab":
         renderRoster();
         break;
+      case "free-agents-tab":
+        renderFreeAgents();
+        break;
       case "playoffs-tab":
         renderPlayoffs();
         break;
@@ -758,6 +761,70 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPlayoffs() {
     window.PlayoffSimView.render(gameState);
   }
+
+  // --- RENDER : FREE AGENTS ---
+  function renderFreeAgents() {
+    const userTeam = gameState.teams[gameState.userTeam];
+    const freeAgents = gameState.freeAgents || [];
+    
+    // Update salary info
+    const availableSalary = userTeam.salary_cap - userTeam.used_salary;
+    document.getElementById("available-salary").textContent = (availableSalary / 1000000).toFixed(1) + "M$";
+    document.getElementById("used-salary").textContent = (userTeam.used_salary / 1000000).toFixed(1) + "M$";
+    document.getElementById("free-agents-count").textContent = freeAgents.length;
+    
+    const tableBody = document.getElementById("free-agents-table-body");
+    tableBody.innerHTML = "";
+    
+    if (freeAgents.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">Aucun agent libre disponible pour le moment.</td>`;
+      tableBody.appendChild(row);
+      return;
+    }
+    
+    freeAgents.forEach(player => {
+      const row = document.createElement("tr");
+      const canSign = player.salary <= availableSalary;
+      const signButtonClass = canSign ? "btn-sign" : "btn-sign unavailable";
+      const signButtonText = canSign ? "Signer" : "Pas d'espace";
+      const signButtonDisabled = canSign ? "" : "disabled";
+      
+      row.innerHTML = `
+        <td>${player.name}</td>
+        <td style="text-align: center">${player.position}</td>
+        <td style="text-align: center">${player.age}</td>
+        <td style="text-align: center">${player.rating}</td>
+        <td style="text-align: center"><span class="salary-badge">${(player.salary / 1000000).toFixed(1)}M$</span></td>
+        <td style="text-align: center">${player.originalTeam}</td>
+        <td style="text-align: center">
+          <button class="${signButtonClass}" ${signButtonDisabled} onclick="signFreeAgent('${player.id}')">
+            ${signButtonText}
+          </button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  window.signFreeAgent = function(faPlayerId) {
+    if (!gameState) return;
+    
+    const res = window.SimulationEngine.handleAction("sign_free_agent", gameState, { faPlayerId });
+    if (res.success) {
+      gameState = res.gameState;
+      localStorage.setItem("nba_sim_state", JSON.stringify(gameState));
+      renderFreeAgents();
+      updateAppView();
+      addNarrativeLog(res.narrative);
+      
+      if (res.alerts && res.alerts.length > 0) {
+        displayAlerts(res.alerts);
+      }
+    } else {
+      alert("Erreur: " + res.data.error);
+    }
+  };
 
   // --- MAILBOX RENDERING & ACTIONS ---
   function renderMailbox() {
