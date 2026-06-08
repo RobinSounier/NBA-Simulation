@@ -330,10 +330,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedState = localStorage.getItem("nba_sim_state");
     if (savedState) {
       gameState = JSON.parse(savedState);
-      
+
       // Migration: initialize salary_cap and used_salary for all teams if missing
       if (gameState.teams) {
-        Object.values(gameState.teams).forEach(team => {
+        Object.values(gameState.teams).forEach((team) => {
           if (!team.salary_cap) {
             team.salary_cap = 140000000;
           }
@@ -345,7 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         });
       }
-      
+
       showAppScreen();
     } else {
       showSelectionScreen();
@@ -524,6 +524,9 @@ document.addEventListener("DOMContentLoaded", () => {
         break;
       case "free-agents-tab":
         renderFreeAgents();
+        break;
+      case "scouting-tab":
+        renderScouting();
         break;
       case "playoffs-tab":
         renderPlayoffs();
@@ -1083,14 +1086,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderFreeAgents() {
     const userTeam = gameState.teams[gameState.userTeam];
     if (!userTeam) return;
-    
+
     const freeAgents = gameState.freeAgents || [];
 
     // Update salary info with fallback defaults
     const salary_cap = userTeam.salary_cap || 140000000;
     const used_salary = userTeam.used_salary || 0;
     const availableSalary = salary_cap - used_salary;
-    
+
     document.getElementById("available-salary").textContent =
       (availableSalary / 1000000).toFixed(1) + "M$";
     document.getElementById("used-salary").textContent =
@@ -1161,6 +1164,163 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Erreur: " + res.data.error);
     }
   };
+
+  // --- SCOUTING/RECRUITMENT SYSTEM ---
+  function getPositionNeeds(roster) {
+    // Analyze current roster to determine position needs
+    const positions = {
+      PG: { count: 0, name: "Meneur de jeu" },
+      SG: { count: 0, name: "Arrière" },
+      SF: { count: 0, name: "Ailier" },
+      PF: { count: 0, name: "Ailier-fort" },
+      C: { count: 0, name: "Pivot" },
+    };
+
+    roster.forEach((player) => {
+      if (positions[player.position]) {
+        positions[player.position].count++;
+      }
+    });
+
+    // Determine which positions are needed (less than 2 players)
+    const needed = Object.entries(positions)
+      .filter(([pos, data]) => data.count < 2)
+      .map(([pos, data]) => ({ pos, name: data.name, current: data.count }));
+
+    return { positions, needed };
+  }
+
+  function getRecommendedAgents(freeAgents, roster, salary_cap, used_salary) {
+    const availableSalary = salary_cap - used_salary;
+    const { needed } = getPositionNeeds(roster);
+    const neededPositions = new Set(needed.map((n) => n.pos));
+
+    // Score agents based on position need and rating
+    const scored = freeAgents
+      .filter((agent) => agent.salary <= availableSalary)
+      .map((agent) => {
+        let score = 0;
+        let reason = "";
+
+        // Position match (important)
+        if (neededPositions.has(agent.position)) {
+          score += 40;
+          reason = `${agent.position} manquant`;
+        } else {
+          score += 10; // Still valuable as backup
+          reason = "Excellent backup";
+        }
+
+        // Rating (important)
+        if (agent.rating >= 80) {
+          score += 30;
+        } else if (agent.rating >= 70) {
+          score += 20;
+        } else if (agent.rating >= 60) {
+          score += 10;
+        }
+
+        // Age (bonus for younger players)
+        if (agent.age <= 25) {
+          score += 15;
+        } else if (agent.age <= 30) {
+          score += 5;
+        }
+
+        // Salary efficiency
+        const costPer100Rating = (agent.salary / agent.rating) * 100;
+        if (costPer100Rating < 30000000) {
+          score += 10;
+          if (reason) reason += " (bon rapport qualité/prix)";
+        }
+
+        return { ...agent, score, reason };
+      });
+
+    // Sort by score descending
+    return scored.sort((a, b) => b.score - a.score).slice(0, 10); // Top 10
+  }
+
+  function renderScouting() {
+    const userTeam = gameState.teams[gameState.userTeam];
+    if (!userTeam) return;
+
+    const salary_cap = userTeam.salary_cap || 140000000;
+    const used_salary = userTeam.used_salary || 0;
+    const availableSalary = salary_cap - used_salary;
+    const freeAgents = gameState.freeAgents || [];
+
+    // Get position analysis
+    const { needed } = getPositionNeeds(userTeam.roster);
+
+    // Display positions needed
+    const positionsNeededDiv = document.getElementById("positions-needed");
+    positionsNeededDiv.innerHTML = "";
+
+    if (needed.length === 0) {
+      const msg = document.createElement("div");
+      msg.style.color = "var(--text-muted)";
+      msg.style.fontSize = "0.9rem";
+      msg.textContent = "Votre effectif est complet !";
+      positionsNeededDiv.appendChild(msg);
+    } else {
+      needed.forEach((pos) => {
+        const badge = document.createElement("div");
+        badge.className = "position-badge";
+        badge.textContent = `${pos.pos} (${pos.current})`;
+        positionsNeededDiv.appendChild(badge);
+      });
+    }
+
+    // Display available budget
+    document.getElementById("budget-info").innerHTML = `
+      <span class="info-value">${(availableSalary / 1000000).toFixed(1)}M$</span>
+    `;
+
+    // Get recommendations
+    const recommendations = getRecommendedAgents(
+      freeAgents,
+      userTeam.roster,
+      salary_cap,
+      used_salary,
+    );
+
+    // Display recommendations
+    const tableBody = document.getElementById("scouting-table-body");
+    tableBody.innerHTML = "";
+
+    if (recommendations.length === 0) {
+      const row = document.createElement("tr");
+      row.innerHTML = `<td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">Aucun agent disponible dans votre budget.</td>`;
+      tableBody.appendChild(row);
+      return;
+    }
+
+    recommendations.forEach((agent) => {
+      const row = document.createElement("tr");
+
+      // Determine score level
+      let scoreClass = "low";
+      if (agent.score >= 70) scoreClass = "high";
+      else if (agent.score >= 50) scoreClass = "medium";
+
+      row.innerHTML = `
+        <td style="text-align: center"><span class="score-badge ${scoreClass}">${agent.score}</span></td>
+        <td><strong>${agent.name}</strong></td>
+        <td style="text-align: center">${agent.position}</td>
+        <td style="text-align: center">${agent.age}</td>
+        <td style="text-align: center">${agent.rating}</td>
+        <td style="text-align: center"><span class="salary-badge">${(agent.salary / 1000000).toFixed(1)}M$</span></td>
+        <td><span class="reason-text">${agent.reason}</span></td>
+        <td style="text-align: center">
+          <button class="btn-sign" onclick="signFreeAgent('${agent.id}')">
+            Signer
+          </button>
+        </td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
 
   // --- MAILBOX RENDERING & ACTIONS ---
   function renderMailbox() {

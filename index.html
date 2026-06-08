@@ -79,6 +79,9 @@
             <button class="nav-item" data-tab="free-agents-tab">
               <i class="fa-solid fa-person-circle-plus"></i> Agents Libres
             </button>
+            <button class="nav-item" data-tab="scouting-tab">
+              <i class="fa-solid fa-magnifying-glass"></i> Recrutement
+            </button>
             <button
               class="nav-item"
               data-tab="messages-tab"
@@ -338,6 +341,53 @@
                   <!-- Dynamically populated -->
                 </tbody>
               </table>
+            </div>
+          </section>
+
+          <!-- SCOUTING TAB -->
+          <section id="scouting-tab" class="tab-content">
+            <div class="tab-inner">
+              <h2>Agent de Recrutement</h2>
+              <p class="section-description">
+                L'agent de recrutement analyse les besoins de votre équipe et
+                recommande les meilleurs prospects disponibles.
+              </p>
+
+              <div class="scouting-analysis">
+                <div class="analysis-card">
+                  <div class="analysis-label">Postes Manquants</div>
+                  <div class="positions-needed" id="positions-needed">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+                <div class="analysis-card">
+                  <div class="analysis-label">Budget Disponible</div>
+                  <div class="budget-info" id="budget-info">
+                    <span class="info-value">0M$</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="recommendations-container">
+                <h3>Recommandations d'Agents</h3>
+                <table class="scouting-table">
+                  <thead>
+                    <tr>
+                      <th style="text-align: center; width: 80px">Score</th>
+                      <th>Joueur</th>
+                      <th style="text-align: center">Pos</th>
+                      <th style="text-align: center">Âge</th>
+                      <th style="text-align: center">Note</th>
+                      <th style="text-align: center">Salaire</th>
+                      <th style="text-align: center">Raison</th>
+                      <th style="text-align: center; width: 120px">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="scouting-table-body">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
 
